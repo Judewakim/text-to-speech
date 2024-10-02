@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+
+BUCKET_NAME="bucketforfirstaiprojecttf"
+POLICY_FILE="bucket_policy.json"
+
+# Upload index.html to S3 bucket
+aws s3 cp /workspace/text-to-speech/texttospeech/index s3://bucketforfirstaiprojecttf/index.html
+
+echo "index.html added"
+
+# Create the bucket policy JSON file
+cat <<EOL > $POLICY_FILE
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": "*",
+      "Action": "s3:GetObject",
+      "Resource": "arn:aws:s3:::bucketforfirstaiprojecttf/*"
+    }
+  ]
+}
+EOL
+
+# Apply the bucket policy
+aws s3api put-bucket-policy --bucket $BUCKET_NAME --policy file://$POLICY_FILE
+
+echo "bucket policy for $BUCKET_NAME added"
+
+# Request the full path of the audio file from the user
+echo "Please enter the full path of the text file you want to upload:"
+read TEXT_FILE_PATH
+
+# Check if the file exists
+if [[ ! -f "$TEXT_FILE_PATH" ]]; then
+    echo -e "\nFile does not exist: $TEXT_FILE_PATH \nExiting...."
+    exit 1
+fi
+
+# Upload the audio file to S3
+aws s3 cp "$TEXT_FILE_PATH" "s3://$BUCKET_NAME/"
+
+# Clean up
+rm $POLICY_FILE
+
+echo "\nFile uploaded successfully."
