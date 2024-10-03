@@ -37,62 +37,98 @@
         font-size: 20px;
         margin-left: 10px;
 		margin-top: 20px;
-		width: 100px;
+		width: 300px;
         }
     </style>
+    <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1.12.min.js"></script>
     <script>
-        // callAPI function that takes the user entry as a parameter
-        var callAPI = (entry) => {
-            // using built in JSON utility package turn object to string and store in a variable
-            var raw = JSON.stringify({"entry": entry});
-            // create a JSON object with parameters for API call and store in a variable
-            var requestOptions = {
-                method: 'POST', // Ensure this matches the method configured in your API Gateway
-                body: raw,
-                redirect: 'follow'
+        // Configure AWS SDK
+        AWS.config.update({
+            region: 'us-east-1',
+            credentials: new AWS.Credentials('','') //NEVER HARDCODE. TEMPORARY ACCESS KEY, SECRET ACCESS KEY
+        });
+
+        const s3 = new AWS.S3();
+
+        // Function to upload text as a file to S3
+        function uploadTextToS3(entry) {
+            const bucketName = 'bucketforfirstaiprojecttf'; // S3 bucket name where txt files are stored
+            const key = `text_files/${Date.now()}.txt`; // Unique file name
+
+            // Create a blob from the text input
+            const blob = new Blob([entry], { type: 'text/plain' });
+
+            const params = {
+                Bucket: bucketName,
+                Key: key,
+                Body: blob,
+                ContentType: 'text/plain'
             };
-            // make API call with parameters and use promises to get response
-            fetch("https://uc6gh4b662.execute-api.us-east-1.amazonaws.com/prod", requestOptions) // Enter gateway endpoint
-                .then(response => response.text())
-                .then(result => alert(JSON.parse(result).body))
-                .catch(error => console.log('error', error));
+
+            // Upload the file to S3
+            s3.upload(params, function(err, data) {
+                if (err) {
+                    console.error('Error uploading file:', err);
+                    alert('Error uploading file: ' + JSON.stringify(err)); //show detailed error
+                } else {
+                    console.log('Successfully uploaded file:', data);
+                    alert('Text file uploaded successfully!');
+
+                    // Log the key to see its structure
+                    console.log('Uploaded file key:', data.Key);
+
+                    // Call function to check for audio file
+                    checkForAudioFile(data.Key);
+                }
+            });
+        }
+
+        // Function to check for the audio file
+        function checkForAudioFile(textFileKey) {
+            // Audio files are named like: audio_text_files/{timestamp}.txt.mp3
+            const audioBucket = 'audiostoragebucketforfirstaiprojecttf';
+            const audioFileKey = `audio_text_files/${textFileKey.split('/').pop().replace('.txt', '.mp3')}`;
+
+            const params = {
+                Bucket: audioBucket,
+                Key: audioFileKey
+            };
+
+            // Try to get the audio file
+            s3.getObject(params, function(err, data) {
+                if (err) {
+                    if (err.code === 'NoSuchKey') {
+                        // If the audio file doesn't exist yet, check again after a short delay
+                        setTimeout(() => checkForAudioFile(textFileKey), 5000); // Poll every 5 seconds
+                    } else {
+                        console.error('Error checking for audio file:', err);
+                        alert('Error checking for audio file: ' + JSON.stringify(err));
+                    }
+                } else {
+                    // If the file exists, show a download link
+                    const audioFileUrl = `https://${audioBucketName}.s3.amazonaws.com/${audioFileKey}`;
+                    alert('Audio file is ready! Download it here: ' + audioFileUrl);
+                }
+            });
+        }
+
+        // Button click event handler
+        function handleSubmit() {
+            const entry = document.getElementById('entry').value;
+            if (entry) {
+                uploadTextToS3(entry);
+            } else {
+                alert('Please enter some text before submitting.');
+            }
         }
     </script>
-
-
-    <!-- <script>
-        // callAPI function that takes the user entry as a parameter
-        var callAPI = (entry)=>{
-            // instantiate a headers object
-            var myHeaders = new Headers();
-            // add content type header to object
-            myHeaders.append("Content-Type", "application/json");
-            // using built in JSON utility package turn object to string and store in a variable
-            var raw = JSON.stringify({"entry":entry});
-            // create a JSON object with parameters for API call and store in a variable
-            var requestOptions = {
-                method: 'PUT',
-                headers: myHeaders,
-                body: raw,
-                redirect: 'follow'
-            };
-            // make API call with parameters and use promises to get response
-            fetch("https://gifjbhol9g.execute-api.us-east-1.amazonaws.com/prod", requestOptions) //enter gateway endpoint
-            .then(response => response.text())
-            .then(result => alert(JSON.parse(result).body))
-            .catch(error => console.log('error', error));
-        }
-    </script> -->
 </head>
 <body>
     <h1>Text to Speech using AWS Polly!</h1>
 	<form>
         <label>What do you want to say?</label><br>
-        <input type="text" id="entry"><br>
-        <!-- <label><br>...and in whos voice?</label>
-        <input type="text" id="exponent"> <br> -->
-        <!-- set button onClick method to call function we defined passing input values as parameters -->
-        <button type="button" onclick="callAPI(document.getElementById('entry').value)">GENERATE AUDIO</button>
+        <input type="text" id="entry" required><br>
+        <button type="button" onclick="handleSubmit()">GENERATE AUDIO</button>
     </form>
 </body>
 </html>

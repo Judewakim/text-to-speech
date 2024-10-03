@@ -3,6 +3,9 @@
 BUCKET_NAME="bucketforfirstaiprojecttf"
 POLICY_FILE="bucket_policy.json"
 
+AUDIO_BUCKET_NAME="audiostoragebucketforfirstaiprojecttf"
+AUDIO_POLICY_FILE="audio_bucket_policy.json"
+
 # Upload index.html to S3 bucket
 aws s3 cp /workspace/text-to-speech/texttospeech/index s3://bucketforfirstaiprojecttf/index.html
 
@@ -16,7 +19,10 @@ cat <<EOL > $POLICY_FILE
     {
       "Effect": "Allow",
       "Principal": "*",
-      "Action": "s3:GetObject",
+      "Action": [
+        "s3:GetObject", 
+        "s3:PutObject"
+      ],
       "Resource": "arn:aws:s3:::bucketforfirstaiprojecttf/*"
     }
   ]
@@ -28,20 +34,43 @@ aws s3api put-bucket-policy --bucket $BUCKET_NAME --policy file://$POLICY_FILE
 
 echo "bucket policy for $BUCKET_NAME added"
 
-# Request the full path of the audio file from the user
-echo "Please enter the full path of the text file you want to upload:"
-read TEXT_FILE_PATH
+# Create the bucket policy JSON file
+cat <<EOL > $AUDIO_POLICY_FILE
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": "*",
+      "Action": [
+        "s3:GetObject", 
+        "s3:PutObject"
+      ],
+      "Resource": "arn:aws:s3:::audiostoragebucketforfirstaiprojecttf/*"
+    }
+  ]
+}
+EOL
 
-# Check if the file exists
-if [[ ! -f "$TEXT_FILE_PATH" ]]; then
-    echo -e "\nFile does not exist: $TEXT_FILE_PATH \nExiting...."
-    exit 1
-fi
+# Apply the bucket policy
+aws s3api put-bucket-policy --bucket $AUDIO_BUCKET_NAME --policy file://$AUDIO_POLICY_FILE
 
-# Upload the audio file to S3
-aws s3 cp "$TEXT_FILE_PATH" "s3://$BUCKET_NAME/"
+echo "bucket policy for $AUDIO_BUCKET_NAME added"
+
+# # Request the full path of the audio file from the user
+# echo "Please enter the full path of the text file you want to upload:"
+# read TEXT_FILE_PATH
+
+# # Check if the file exists
+# if [[ ! -f "$TEXT_FILE_PATH" ]]; then
+#     echo -e "\nFile does not exist: $TEXT_FILE_PATH \nExiting...."
+#     exit 1
+# fi
+
+# # Upload the audio file to S3
+# aws s3 cp "$TEXT_FILE_PATH" "s3://$BUCKET_NAME/"
 
 # Clean up
 rm $POLICY_FILE
 
-echo "\nFile uploaded successfully."
+# echo "File uploaded successfully."

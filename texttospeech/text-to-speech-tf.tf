@@ -21,7 +21,7 @@ resource "aws_s3_bucket_cors_configuration" "firstbucketcors" {
   cors_rule {
     allowed_origins = ["*"]
     allowed_headers = [ "*" ]
-    allowed_methods = ["GET", "PUT", "POST", "DELETE"]
+    allowed_methods = ["GET", "PUT", "POST"]
   }
 }
 
@@ -44,6 +44,18 @@ resource "aws_s3_bucket_website_configuration" "firstbucketwebconfig" {
   }
 }
 
+#s3 bucket notification
+resource "aws_s3_bucket_notification" "bucket_notification" {
+  bucket = aws_s3_bucket.firstbucket.id
+
+  lambda_function {
+    lambda_function_arn = aws_lambda_function.test_lambda.arn
+    events = [ "s3:ObjectCreated:*" ]
+    filter_suffix = ".txt"
+  }
+
+  depends_on = [ aws_lambda_permission.allow_bucket ]
+}
 
 #Lamda & IAM policy-- straight from lamda_function registry.terraform.io
 data "aws_iam_policy_document" "assume_role" {
@@ -82,7 +94,8 @@ resource "aws_iam_policy" "lambda_policy" {
         Effect = "Allow"
         Action = [
           "s3:PutObject",
-          "s3:GetObject"
+          "s3:GetObject",
+          "s3:ListBucket"
         ]
         Resource = [
           "arn:aws:s3:::bucketforfirstaiprojecttf/*",
@@ -182,13 +195,23 @@ module "api-gateway-enable-cors" {
   allow_headers = ["*"]
 }
 
+#lambda trigger from web
 resource "aws_lambda_permission" "lambda_permission" {
   statement_id  = "AllowMyAPIInvoke"
   action        = "lambda:InvokeFunction"
   function_name = "firstaiprojectfunction"
   principal     = "apigateway.amazonaws.com"
 
-  source_arn = "${aws_api_gateway_rest_api.api.execution_arn}/*"
+  source_arn = "${aws_api_gateway_rest_api.api.execution_arn}/*/*"
+}
+
+#lambda trigger from s3
+resource "aws_lambda_permission" "allow_bucket" {
+  statement_id = "AllowExecutionFromS3Bucket"
+  action = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.test_lambda.arn
+  principal = "s3.amazonaws.com"
+  source_arn = aws_s3_bucket.firstbucket.arn
 }
 
 #get an api gateway stage to generate the url endpoint immediately
@@ -208,6 +231,7 @@ resource "aws_s3_bucket_cors_configuration" "audiostoragebucketcors" {
 
   cors_rule {
     allowed_origins = ["*"]
+    allowed_headers = [ "*" ]
     allowed_methods = ["GET", "PUT", "POST"]
   }
 }
