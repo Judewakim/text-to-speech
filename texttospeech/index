@@ -40,12 +40,12 @@
 		width: 300px;
         }
     </style>
-    <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1.12.min.js"></script>
+    <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1108.0.min.js"></script>
     <script>
         // Configure AWS SDK
         AWS.config.update({
             region: 'us-east-1',
-            credentials: new AWS.Credentials('','') //NEVER HARDCODE. TEMPORARY ACCESS KEY, SECRET ACCESS KEY
+            credentials: new AWS.Credentials('AKIAVV2XLYFN2YQYVDGA','TZDpfni1XCCAT2C6SBj9FqDCq6ULc04HlyHi+bTz') //NEVER HARDCODE. TEMPORARY ACCESS KEY, SECRET ACCESS KEY
         });
 
         const s3 = new AWS.S3();
@@ -71,11 +71,19 @@
                     console.error('Error uploading file:', err);
                     alert('Error uploading file: ' + JSON.stringify(err)); //show detailed error
                 } else {
-                    console.log('Successfully uploaded file:', data);
+                    console.log('Uploaded file data:', JSON.stringify(data));
                     alert('Text file uploaded successfully!');
 
-                    // Log the key to see its structure
-                    console.log('Uploaded file key:', data.Key);
+                    // Log data object to see what it returns
+                    console.log('Uploaded file key:', data);
+
+                    // Pass the correct key to check for the audio file
+                    if (data && data.Key) {
+                        checkForAudioFile(data.Key);
+                    } else {
+                        alert('Upload successful, but no Key found in the response.');
+                        console.log('Complete response object:', data); // log the entire object to check for issues
+                    }
 
                     // Call function to check for audio file
                     checkForAudioFile(data.Key);
@@ -106,7 +114,7 @@
                     }
                 } else {
                     // If the file exists, show a download link
-                    const audioFileUrl = `https://${audioBucketName}.s3.amazonaws.com/${audioFileKey}`;
+                    const audioFileUrl = `https://${audioBucket}.s3.amazonaws.com/${audioFileKey}`;
                     alert('Audio file is ready! Download it here: ' + audioFileUrl);
                 }
             });

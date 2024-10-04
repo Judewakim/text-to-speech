@@ -44,6 +44,26 @@ resource "aws_s3_bucket_website_configuration" "firstbucketwebconfig" {
   }
 }
 
+#s3 bucket policy
+resource "aws_s3_bucket_policy" "firstbucketpolicy" {
+  bucket = aws_s3_bucket.firstbucket.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect    = "Allow"
+        Principal = "*"
+        Action    = [
+          "s3:GetObject", 
+          "s3:PutObject"
+        ]
+        Resource  = "${aws_s3_bucket.firstbucket.arn}/*"
+      }
+    ]
+  })
+}
+
 #s3 bucket notification
 resource "aws_s3_bucket_notification" "bucket_notification" {
   bucket = aws_s3_bucket.firstbucket.id
@@ -244,6 +264,26 @@ resource "aws_s3_bucket_public_access_block" "s3_audio_public_access" {
   ignore_public_acls  = false
   block_public_policy = false
   restrict_public_buckets = false
+}
+
+#S3 bucket policy for audio bucket
+resource "aws_s3_bucket_policy" "audiostoragebucketpolicy" {
+  bucket = aws_s3_bucket.audio_storage_bucket.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect    = "Allow"
+        Principal = "*"
+        Action    = [
+          "s3:GetObject", 
+          "s3:PutObject"
+        ]
+        Resource  = "${aws_s3_bucket.audio_storage_bucket.arn}/*"
+      }
+    ]
+  })
 }
 
 output "api_url" {
