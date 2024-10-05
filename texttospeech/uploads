@@ -7,7 +7,7 @@
 # AUDIO_POLICY_FILE="audio_bucket_policy.json"
 
 # Upload index.html to S3 bucket
-aws s3 cp /workspace/text-to-speech/texttospeech/index s3://bucketforfirstaiprojecttf/index.html
+aws s3 cp /workspace/text-to-speech/texttospeech/index.html s3://bucketforfirstaiprojecttf/index.html --content-type "text/html"
 
 echo "index.html added"
 
@@ -74,3 +74,6 @@ echo "index.html added"
 # rm $POLICY_FILE
 
 # echo "File uploaded successfully."
+
+# s3 presigned url
+# aws s3 presign s3://your-private-bucket/audio-file.mp3 --expires-in 3600
