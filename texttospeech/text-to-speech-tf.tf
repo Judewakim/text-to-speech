@@ -323,19 +323,20 @@ resource "aws_s3_bucket_policy" "audiostoragebucketpolicy" {
   bucket = aws_s3_bucket.audio_storage_bucket.id
 
   policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect    = "Allow"
-        Principal = "*"
-        Action    = [
-          "s3:GetObject", 
-          "s3:PutObject"
-        ]
-        Resource  = "${aws_s3_bucket.audio_storage_bucket.arn}/*"
-      }
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Principal": "*",
+            "Action": [
+                "s3:GetObject",
+                "s3:PutObject"
+            ],
+            "Resource": "arn:aws:s3:::audiostoragebucketforfirstaiprojecttf/*"
+        }
     ]
-  })
+}
+)
 }
 
 output "api_url" {
