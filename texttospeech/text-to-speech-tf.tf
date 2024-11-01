@@ -339,6 +339,50 @@ resource "aws_s3_bucket_policy" "audiostoragebucketpolicy" {
 )
 }
 
+# Cognito User Pool
+resource "aws_cognito_user_pool" "texttospeech" {
+  name                       = "texttospeech"
+  username_attributes        = ["email"]
+  auto_verified_attributes   = ["email"] # This allows automatic email verification
+  mfa_configuration          = "OFF" # Disables MFA
+
+  # Default password policy
+  password_policy {
+    minimum_length                   = 16
+    require_uppercase                = true
+    require_lowercase                = true
+    require_numbers                  = true
+    require_symbols                  = true
+    temporary_password_validity_days = 2
+  }
+
+  # Configuring email settings to use Cognito for message delivery
+  email_configuration {
+    email_sending_account = "COGNITO_DEFAULT"
+  }
+}
+
+# App Client for the User Pool
+resource "aws_cognito_user_pool_client" "texttospeech_app_client" {
+  name                         = "texttospeech web app"
+  user_pool_id                 = aws_cognito_user_pool.texttospeech.id
+  explicit_auth_flows          = ["ALLOW_USER_SRP_AUTH", "ALLOW_REFRESH_TOKEN_AUTH"]
+  prevent_user_existence_errors = "ENABLED" # Optional: avoids potential errors for unregistered users
+
+  # callback URLs here
+  callback_urls = [
+    "https://${aws_cloudfront_distribution.distro.domain_name}/callback",  # Replace with your actual callback URL
+    # "https://anotherdomain.com/callback" # Optional: Add additional callback URLs if needed
+  ]
+}
+
+resource "aws_cognito_user_pool_domain" "texttospeech_cognitodomain" {
+  domain = "text-to-speech"
+  user_pool_id = aws_cognito_user_pool.texttospeech.id
+}
+
+
+
 output "api_url" {
   value = "${aws_api_gateway_deployment.deployment.invoke_url}/resource"
 }

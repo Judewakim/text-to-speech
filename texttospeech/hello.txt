@@ -1,1 +1,4 @@
-Baaaooooww
+add the access keys to the index.html
+
+add a domain to the cognito app integration
+

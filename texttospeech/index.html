@@ -41,11 +41,55 @@
         }
     </style>
     <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1108.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/amazon-cognito-identity-js@4.5.3/dist/amazon-cognito-identity.min.js"></script>
     <script>
+        // // Cognito configuration
+        // const cognitoConfig = {
+        //     UserPoolId: 'us-east-1_Z82M5SuKK', // Replace with your actual User Pool ID
+        //     ClientId: '26auh00kil4eoea2bknpcbgddl'   // Replace with your actual App Client ID
+        // };
+
+        // const userPool = new AmazonCognitoIdentity.CognitoUserPool(cognitoConfig);
+
+        // function redirectToLogin() {
+        //     const loginUrl = `https://text-to-speech.auth.us-east-1.amazoncognito.com/login?client_id=${cognitoConfig.ClientId}&response_type=token&scope=email+openid&redirect_uri=https://d1pzsgj7yqvye7.cloudfront.net`;
+        //     window.location.href = loginUrl;
+        // }
+
+        // function getSessionToken() {
+        //     const urlHash = window.location.hash.substring(1);
+        //     const params = new URLSearchParams(urlHash);
+        //     return params.get("id_token");
+        // }
+
+        // function checkAuth() {
+        //     const token = getSessionToken();
+        //     if (!token) {
+        //         redirectToLogin();
+        //     } else {
+        //         AWS.config.credentials = new AWS.CognitoIdentityCredentials({
+        //             IdentityPoolId: 'us-east-1:example-identity-pool-id',
+        //             Logins: {
+        //                 [`cognito-idp.us-east-1.amazonaws.com/${cognitoConfig.UserPoolId}`]: token
+        //             }
+        //         });
+        //         AWS.config.credentials.refresh((error) => {
+        //             if (error) {
+        //                 console.error('Error refreshing credentials:', error);
+        //                 alert('Authentication failed, redirecting to login.');
+        //                 redirectToLogin();
+        //             } else {
+        //                 console.log('Successfully authenticated');
+        //                 document.getElementById('content').style.display = 'block';
+        //             }
+        //         });
+        //     }
+        // }
+
         // Configure AWS SDK
         AWS.config.update({
             region: 'us-east-1',
-            credentials: new AWS.Credentials('AKIAVV2XLYFN2YQYVDGA','TZDpfni1XCCAT2C6SBj9FqDCq6ULc04HlyHi+bTz') //NEVER HARDCODE. TEMPORARY ACCESS KEY, SECRET ACCESS KEY
+            credentials: new AWS.Credentials('','') //NEVER HARDCODE. TEMPORARY ACCESS KEY, SECRET ACCESS KEY
         });
 
         const s3 = new AWS.S3();
@@ -129,6 +173,8 @@
                 alert('Please enter some text before submitting.');
             }
         }
+
+        window.onload = checkAuth;
     </script>
 </head>
 <body>
