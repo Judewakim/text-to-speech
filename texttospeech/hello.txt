@@ -1,4 +1,10 @@
+install bin scripts
+create .env
+terraform init
+set-env scriptsplan
+apply
 add the access keys to the index.html
+upload
 
-add a domain to the cognito app integration
+
 
