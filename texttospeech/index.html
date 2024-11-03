@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Text to Speech using AWS Polly!</title>
+    <title>Text to Speech</title>
     <!-- Styling for the client UI -->
     <style>
     h1 {
@@ -43,18 +43,18 @@
     <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1108.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/amazon-cognito-identity-js@4.5.3/dist/amazon-cognito-identity.min.js"></script>
     <script>
-        // // Cognito configuration
-        // const cognitoConfig = {
-        //     UserPoolId: 'us-east-1_Z82M5SuKK', // Replace with your actual User Pool ID
-        //     ClientId: '26auh00kil4eoea2bknpcbgddl'   // Replace with your actual App Client ID
-        // };
+        // Cognito configuration
+        const cognitoConfig = {
+            UserPoolId: '${aws_cognito_user_pool.texttospeech.id}',
+            ClientId: '${aws_cognito_user_pool_client.texttospeech_app_client.id}'
+        };
 
         // const userPool = new AmazonCognitoIdentity.CognitoUserPool(cognitoConfig);
 
-        // function redirectToLogin() {
-        //     const loginUrl = `https://text-to-speech.auth.us-east-1.amazoncognito.com/login?client_id=${cognitoConfig.ClientId}&response_type=token&scope=email+openid&redirect_uri=https://d1pzsgj7yqvye7.cloudfront.net`;
-        //     window.location.href = loginUrl;
-        // }
+        function redirectToLogin() {
+            const loginUrl = `https://${aws_cognito_user_pool_domain.texttospeech_cognitodomain.domain}.auth.${region}.amazoncognito.com/login?client_id=${cognitoConfig.ClientId}&response_type=code&scope=email+openid+profile&redirect_uri=https://${aws_cloudfront_distribution.distro.domain_name}/callback`;
+            window.location.href = loginUrl;
+        }
 
         // function getSessionToken() {
         //     const urlHash = window.location.hash.substring(1);

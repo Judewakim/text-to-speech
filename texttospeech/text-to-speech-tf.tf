@@ -374,6 +374,14 @@ resource "aws_cognito_user_pool_client" "texttospeech_app_client" {
     "https://${aws_cloudfront_distribution.distro.domain_name}/callback",  # Replace with your actual callback URL
     # "https://anotherdomain.com/callback" # Optional: Add additional callback URLs if needed
   ]
+
+  logout_urls = [
+    "https://${aws_cloudfront_distribution.distro.domain_name}/logout"
+  ]
+
+  # allowed_oauth_flows = ["code"]
+  # allowed_oauth_scopes = ["email", "openid", "profile"]
+  # allowed_oauth_flows_user_pool_client = true
 }
 
 resource "aws_cognito_user_pool_domain" "texttospeech_cognitodomain" {
@@ -383,6 +391,6 @@ resource "aws_cognito_user_pool_domain" "texttospeech_cognitodomain" {
 
 
 
-output "api_url" {
-  value = "${aws_api_gateway_deployment.deployment.invoke_url}/resource"
-}
+# output "api_url" {
+#   value = "${aws_api_gateway_deployment.deployment.invoke_url}/resource"
+# }

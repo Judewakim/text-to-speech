@@ -1,10 +1,14 @@
 install bin scripts
 create .env
 terraform init
-set-env scriptsplan
+set-env scripts
+plan
 apply
 add the access keys to the index.html
 upload
 
+-----
+
+finish cognito
 
 
